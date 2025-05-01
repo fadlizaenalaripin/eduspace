@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
@@ -68,3 +69,7 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+=======
+# eduspace
+EduSpace adalah platform kursus online yang menyediakan ruang belajar interaktif dan modern untuk pelajar, mahasiswa, maupun profesional muda. Dengan tampilan yang simpel dan responsif, pengguna bisa memilih berbagai kelas, mulai dari teknologi, desain, bisnis, hingga pengembangan diri.
+>>>>>>> 040e741d41f44ec3b48d35ad2b83731137b96d67

@@ -41,34 +41,30 @@ function About() {
 
         {/* Core Values Section */}
         <motion.div 
-          className="bg-blue-50 rounded-xl p-10 shadow-md mb-20"
-          initial={{ scale: 0.95, opacity: 0 }}
-          whileInView={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h3 className="text-2xl font-semibold text-gray-800 text-center mb-8">Nilai-Nilai Inti Kami</h3>
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            {[
-              { title: 'Inovatif', desc: 'Kami terus berinovasi untuk menciptakan metode belajar yang menarik dan efektif.' },
-              { title: 'Terjangkau', desc: 'Kami percaya bahwa kualitas pendidikan harus bisa diakses oleh semua kalangan.' },
-              { title: 'Berorientasi Hasil', desc: 'Kami fokus pada hasil nyata: peningkatan keterampilan dan kesiapan kerja.' }
-            ].map((item, i) => (
-              <div key={i}>
-                <div className="text-blue-500 text-4xl mb-2">🎯</div>
-                <h4 className="text-xl font-bold text-blue-600 mb-2">{item.title}</h4>
-                <p className="text-gray-600">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </motion.div>
+  className="bg-blue-50 rounded-xl p-10 shadow-md mb-20"
+  initial={{ scale: 0.95, opacity: 0 }}
+  whileInView={{ scale: 1, opacity: 1 }}
+  transition={{ duration: 0.6 }}
+>
+  <h3 className="text-2xl font-semibold text-gray-800 text-center mb-8">Nilai-Nilai Inti Kami</h3>
+  <div className="grid md:grid-cols-3 gap-8 text-center">
+    {[
+      { title: 'Inovatif', desc: 'Kami terus berinovasi untuk menciptakan metode belajar yang menarik dan efektif.' },
+      { title: 'Terjangkau', desc: 'Kami percaya bahwa kualitas pendidikan harus bisa diakses oleh semua kalangan.' },
+      { title: 'Berorientasi Hasil', desc: 'Kami fokus pada hasil nyata: peningkatan keterampilan dan kesiapan kerja.' }
+    ].map((item, i) => (
+      <div 
+        key={i} 
+        className="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl hover:bg-blue-100 transition-all duration-300"
+      >
+        <div className="text-blue-500 text-4xl mb-2">🎯</div>
+        <h4 className="text-xl font-bold text-blue-600 mb-2">{item.title}</h4>
+        <p className="text-gray-600">{item.desc}</p>
+      </div>
+    ))}
+  </div>
+</motion.div>
 
-        {/* Testimonial Preview */}
-        <motion.div 
-          className="mb-20 text-center max-w-3xl mx-auto"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        ></motion.div>
 
         {/* Final CTA */}
         <div className="text-center">

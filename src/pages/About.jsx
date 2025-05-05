@@ -2,6 +2,8 @@
 import React from 'react';
 import HeroImage from '../asset/learning.svg';
 import { motion } from 'framer-motion';
+import ilham from '../asset/foto illham.jpg'
+import muhyi from '../asset/foto muhy.jpg'
 
 function About() {
   return (
@@ -74,6 +76,51 @@ function About() {
           </p>
         </div>
       </div>
+      
+      {/* Mentor Section */}
+<motion.div
+  className="mb-20"
+  initial={{ opacity: 0, y: 30 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.6 }}
+>
+  <h3 className="text-2xl font-semibold text-gray-800 text-center mb-10">Mentor Kami</h3>
+  <div className="grid md:grid-cols-3 gap-8">
+    {[
+      {
+        name: 'Ilham nursamsi, S.Kom., M.kom.',
+        photo: require('../asset/foto illham.jpg'),
+        education: 'S2 Teknik informatika - Universitas Indoenesia',
+        education: 'S1 Teknik informatika - STIKOM POLTEK CIREBON',
+        experience: '5 tahun di Pertamnina persero sebagai Learning Designer',
+      },
+      {
+        name: 'Muhyi Hidayah',
+        photo: require('../asset/foto muhy.jpg'),
+        education: 'S1 Teknik Informatika - ITB',
+        education: 'S2 Teknik Mesin - ITB',
+        experience: 'Ex-Software Engineer di Gojek dan Bukalapak',
+      },
+      {
+        name: 'Fadli Zaenal Aripin',
+        photo: require('../asset/foto fadli.jpg'),
+        education: 'S1 Teknik informatika - ITB',
+        education: 'S2 Computer Sceince - Harvard',
+        experience: '8 tahun sebagai konsultan pendidikan & trainer',
+      },
+    ].map((mentor, i) => (
+      <div key={i} className="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-2xl transition-all duration-300">
+        <img src={mentor.photo} alt={mentor.name} className="w-28 h-28 rounded-full mx-auto mb-4 object-cover" />
+        <h4 className="text-lg font-bold text-blue-700">{mentor.name}</h4>
+        <p className="text-gray-600 mt-2"><strong>Pendidikan:</strong> {mentor.education}</p>
+        <p className="text-gray-600 mt-1"><strong>Pengalaman:</strong> {mentor.experience}</p>
+      </div>
+    ))}
+  </div>
+</motion.div>
+
+
+
     </section>
   );
 }

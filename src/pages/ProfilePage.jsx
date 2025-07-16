@@ -6,52 +6,51 @@ import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 
 function ProfilePage() {
-    // Dapatkan isLoggedIn, logout, user (sebagai authUser), isLoadingAuth, updateProfileInContext, dan token dari AuthContext
-    // PASTIKAN 'token' JUGA DIAMBIL DI SINI DARI useAuth()
-    const { isLoggedIn, logout, user: authUser, isLoadingAuth, updateProfileInContext, token } = useAuth(); // <<<--- BARIS INI PENTING
-
+    const { isLoggedIn, logout, user: authUser, isLoadingAuth, updateProfileInContext, token } = useAuth();
     const [userData, setUserData] = useState({
         username: '',
         email: '',
         fullName: '',
         dateOfBirth: '',
         phoneNumber: '',
-        profilePictureUrl: ''
+        profilePictureUrl: '',
+        bio: '' // Menambahkan bio
     });
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
-    const [loading, setLoading] = useState(true); // Tetap true di awal
+    const [loading, setLoading] = useState(true);
 
-    // --- PERBAIKAN DI SINI: UBAH URL BACKEND KE ALAMAT PHP ANDA ---
-    // Gunakan URL backend PHP Anda yang benar, bukan localhost:5000 (Node.js)
-    const BACKEND_URL = 'http://eduspace-backend-php.test'; // <<<--- UBAH KE URL BACKEND PHP ANDA
-    // --- AKHIR PERBAIKAN ---
+    const BACKEND_URL = 'http://eduspace-backend-php.test';
 
-    // Bungkus fetchUserProfile dengan useCallback untuk stabilitas
-    const fetchUserProfile = useCallback(async (authToken) => { // Menerima authToken sebagai argumen
-        console.log("[ProfilePage] fetchUserProfile dipanggil."); // <<<--- LOGGING
+    const fetchUserProfile = useCallback(async (authToken) => {
+        console.log("[ProfilePage] fetchUserProfile dipanggil dengan token:", authToken ? "Ada" : "Tidak Ada");
         if (!authToken) {
-            console.warn("[ProfilePage] fetchUserProfile: Token tidak disediakan."); // <<<--- LOGGING
             setError('Anda perlu login untuk melihat profil.');
             setLoading(false);
             return;
         }
 
         try {
-            // Perhatikan bahwa URL endpoint API PHP Anda mungkin tidak memiliki '/api' setelah domain.
-            // Sesuaikan path ini jika struktur API PHP Anda berbeda.
-            // Contoh: Jika API profil Anda langsung di http://eduspace-backend-php.test/user/profile.php
-            // maka cukup gunakan `${BACKEND_URL}/user/profile.php`
-            console.log("[ProfilePage] Mengirim permintaan GET ke /api/users/profile dengan token:", authToken); // <<<--- LOGGING
-            const response = await axios.get(`${BACKEND_URL}/api/user/profile.php`, { // <<<--- SESUAIKAN PATH API PHP DI SINI
+            console.log("[ProfilePage] Mengirim permintaan GET ke /api/user/profile.php dengan token.");
+            const response = await axios.get(`${BACKEND_URL}/api/user/profile.php`, {
                 headers: {
                     Authorization: `Bearer ${authToken}`
                 }
             });
-            const data = response.data.user; // Data user ada di properti 'user' dari respons
-            console.log("[ProfilePage] Data profil diterima:", data); // <<<--- LOGGING
+            
+            // --- PERBAIKAN DI SINI: Pastikan response.data.user ada sebelum mengaksesnya ---
+            const data = response.data.user;
+            console.log("[ProfilePage] Data profil diterima dari backend (raw):", response.data); // Log respons mentah
+            console.log("[ProfilePage] Objek 'user' dari data profil:", data); // Log objek user yang diekstrak
 
+            if (!data) {
+                setError('Data profil tidak ditemukan atau tidak lengkap dari server.');
+                setLoading(false);
+                return;
+            }
+
+            // Memastikan semua properti ada atau default ke string kosong
             const formattedDateOfBirth = data.dateOfBirth
                 ? new Date(data.dateOfBirth).toISOString().split('T')[0]
                 : '';
@@ -62,37 +61,33 @@ function ProfilePage() {
                 fullName: data.fullName || '',
                 dateOfBirth: formattedDateOfBirth,
                 phoneNumber: data.phoneNumber || '',
-                profilePictureUrl: data.profilePicture || ''
+                profilePictureUrl: data.profilePicture ? `${BACKEND_URL}${data.profilePicture}` : '',
+                bio: data.bio || '' // Memastikan bio juga diatur
             });
-            setLoading(false); // <<<--- PENTING: loading diatur ke false di sini
-            setError(''); // Clear error jika berhasil fetch
-            console.log("[ProfilePage] State userData diperbarui, loading disetel ke false."); // <<<--- LOGGING
+            setLoading(false);
+            setError('');
+            console.log("[ProfilePage] State userData diperbarui, loading disetel ke false.");
         } catch (err) {
-            console.error('[ProfilePage] Error fetching user profile:', err); // <<<--- LOGGING
+            console.error('Error fetching user profile:', err);
             if (err.response) {
-                console.error("[ProfilePage] Respon error:", err.response.status, err.response.data); // <<<--- LOGGING
+                console.error("[ProfilePage] Respon error GET:", err.response.status, err.response.data);
             }
             if (err.response && err.response.status === 401) {
                 setError('Sesi Anda telah berakhir atau tidak valid. Silakan login kembali.');
-                logout(); // Panggil logout dari AuthContext untuk membersihkan state
+                logout();
             } else {
-                setError(err.response?.data?.message || 'Gagal memuat data profil. Silakan coba lagi.');
+                setError(err.response?.data?.msg || 'Gagal memuat data profil. Silakan coba lagi.');
             }
-            setLoading(false); // <<<--- PENTING: loading diatur ke false jika ada error
+            setLoading(false);
         }
-    }, [BACKEND_URL, logout]); // logout sebagai dependency karena dipanggil di dalamnya
+    }, [BACKEND_URL, logout]);
 
-    // useEffect utama untuk memicu pengambilan data profil
     useEffect(() => {
-        console.log("[ProfilePage] useEffect: isLoggedIn:", isLoggedIn, "isLoadingAuth:", isLoadingAuth, "token:", token, "authUser:", authUser); // <<<--- LOGGING
-        // Hanya panggil fetchUserProfile jika AuthContext mengonfirmasi user sudah login dan tidak dalam proses loading auth
-        if (isLoggedIn && !isLoadingAuth && token) { // <<<--- KONDISI PENTING: Gunakan state 'token' langsung dari AuthContext
-            console.log("[ProfilePage] Kondisi terpenuhi: Memulai fetchUserProfile."); // <<<--- LOGGING
-            setLoading(true); // Mulai loading saat akan fetch
-            fetchUserProfile(token); // Lewatkan state 'token' dari AuthContext
+        console.log("[ProfilePage useEffect] Status Auth:", { isLoggedIn, isLoadingAuth, authUserToken: authUser?.token });
+        if (isLoggedIn && !isLoadingAuth && token) { // Menggunakan 'token' dari useAuth
+            setLoading(true);
+            fetchUserProfile(token);
         } else if (!isLoggedIn && !isLoadingAuth) {
-            // Jika isLoggedIn false dan isLoadingAuth juga false (berarti tidak login)
-            console.log("[ProfilePage] User tidak login setelah isLoadingAuth selesai."); // <<<--- LOGGING
             setError('Anda perlu login untuk melihat profil.');
             setLoading(false);
         }
@@ -114,10 +109,10 @@ function ProfilePage() {
         e.preventDefault();
         setMessage('');
         setError('');
-        setLoading(true); // Set loading saat submit
+        setLoading(true);
 
-        // Gunakan token dari AuthContext
-        if (!token) { // <<<--- KONDISI PENTING: Gunakan state 'token' langsung
+        const authToken = token; // Menggunakan 'token' dari useAuth
+        if (!authToken) {
             setError('Anda tidak diotorisasi. Silakan login kembali.');
             logout();
             setLoading(false);
@@ -130,54 +125,66 @@ function ProfilePage() {
         formData.append('fullName', userData.fullName);
         formData.append('dateOfBirth', userData.dateOfBirth);
         formData.append('phoneNumber', userData.phoneNumber);
+        formData.append('bio', userData.bio); // Menambahkan bio ke formData
         if (selectedFile) {
             formData.append('profilePicture', selectedFile);
         }
 
+        // --- DEBUGGING: Log isi FormData sebelum dikirim ---
+        console.log("[ProfilePage] Isi FormData sebelum dikirim:");
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
+        // --- AKHIR DEBUGGING ---
+
         try {
-            console.log("[ProfilePage] Mengirim permintaan PUT ke /api/users/profile."); // <<<--- LOGGING
-            const response = await axios.put(`${BACKEND_URL}/api/user/profile.php`, formData, { // <<<--- SESUAIKAN PATH API PHP DI SINI
+            console.log("[ProfilePage] Mengirim permintaan POST ke /api/user/profile.php untuk update.");
+            const response = await axios.post(`${BACKEND_URL}/api/user/profile.php`, formData, {
                 headers: {
-                    Authorization: `Bearer ${token}`, // <<<--- Menggunakan state 'token' langsung
-                    'Content-Type': 'multipart/form-data'
+                    Authorization: `Bearer ${authToken}`,
+                    // 'Content-Type': 'multipart/form-data' akan diatur otomatis oleh Axios
                 }
             });
 
             setMessage('Profil berhasil diperbarui!');
-            console.log("[ProfilePage] Profil berhasil diperbarui di backend:", response.data.user); // <<<--- LOGGING
+            console.log("[ProfilePage] Respon sukses dari backend (raw):", response.data); // Log respons sukses mentah
 
-            // Panggil updateProfileInContext yang sudah dideklarasikan di awal komponen
-            updateProfileInContext(response.data.user); 
+            const updatedProfileData = response.data.user;
+            if (updatedProfileData) {
+                updateProfileInContext(updatedProfileData); // Update di AuthContext
 
-            setUserData(prev => ({
-                ...prev,
-                username: response.data.user.username || prev.username,
-                email: response.data.user.email || prev.email,
-                fullName: response.data.user.fullName || prev.fullName,
-                dateOfBirth: response.data.user.dateOfBirth ? new Date(response.data.user.dateOfBirth).toISOString().split('T')[0] : prev.dateOfBirth,
-                phoneNumber: response.data.user.phoneNumber || prev.phoneNumber,
-                profilePictureUrl: response.data.user.profilePicture || ''
-            }));
-            setSelectedFile(null);
+                // Perbarui state userData dengan data terbaru dari respons backend
+                setUserData(prev => ({
+                    ...prev,
+                    username: updatedProfileData.username || prev.username,
+                    email: updatedProfileData.email || prev.email,
+                    fullName: updatedProfileData.fullName || prev.fullName,
+                    dateOfBirth: updatedProfileData.dateOfBirth ? new Date(updatedProfileData.dateOfBirth).toISOString().split('T')[0] : prev.dateOfBirth,
+                    phoneNumber: updatedProfileData.phoneNumber || prev.phoneNumber,
+                    profilePictureUrl: updatedProfileData.profilePicture ? `${BACKEND_URL}${updatedProfileData.profilePicture}` : '',
+                    bio: updatedProfileData.bio || prev.bio // Memastikan bio juga diupdate
+                }));
+            }
+            setSelectedFile(null); // Reset file yang dipilih
 
         } catch (err) {
-            console.error('[ProfilePage] Error updating profile:', err); // <<<--- LOGGING
+            console.error('Error updating profile:', err);
             if (err.response) {
-                console.error("[ProfilePage] Respon error update:", err.response.status, err.response.data); // <<<--- LOGGING
+                console.error("[ProfilePage] Respon error update:", err.response.status, err.response.data);
             }
             if (err.response && err.response.status === 401) {
                 setError('Sesi Anda telah berakhir atau tidak valid. Silakan login kembali.');
                 logout();
             } else {
-                setError(err.response?.data?.message || 'Gagal memperbarui profil. Silakan coba lagi.');
+                setError(err.response?.data?.msg || 'Gagal memperbarui profil. Silakan coba lagi.');
             }
         } finally {
-            setLoading(false); // Pastikan loading false setelah selesai (baik sukses/gagal)
+            setLoading(false);
         }
     };
 
-    if (isLoadingAuth || loading) { // Kondisi ini mengontrol tampilan "Memuat profil..."
-        console.log("[ProfilePage] Menampilkan loading: isLoadingAuth =", isLoadingAuth, ", loading =", loading); // <<<--- LOGGING
+    if (isLoadingAuth || loading) {
+        console.log("[ProfilePage] Menampilkan loading: isLoadingAuth =", isLoadingAuth, ", loading =", loading);
         return (
             <div className="flex justify-center items-center h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
                 <p className="text-xl text-gray-700 dark:text-gray-300">Memuat profil...</p>
@@ -185,9 +192,8 @@ function ProfilePage() {
         );
     }
 
-    // Tampilkan pesan error dan link ke login jika sesi tidak valid
     if (error && (error.includes('Anda perlu login') || error.includes('Sesi Anda telah berakhir'))) {
-        console.log("[ProfilePage] Menampilkan pesan error dan link login:", error); // <<<--- LOGGING
+        console.log("[ProfilePage] Menampilkan pesan error dan link login:", error);
         return (
             <div className="text-center mt-20 p-4 bg-red-100 text-red-700 rounded-lg">
                 {error} <Link to="/login" className="text-blue-500 hover:underline">Login di sini</Link>
@@ -214,7 +220,7 @@ function ProfilePage() {
                 <div className="mb-8 text-center">
                     {userData.profilePictureUrl ? (
                         <img
-                            src={userData.profilePictureUrl} // Gunakan URL lengkap dari state
+                            src={userData.profilePictureUrl}
                             alt="Profil User"
                             className="w-40 h-40 rounded-full object-cover mx-auto mb-5 border-4 border-blue-600 dark:border-blue-500 shadow-md transform transition-transform duration-300 hover:scale-105"
                         />
@@ -276,7 +282,7 @@ function ProfilePage() {
                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-100 transition-colors duration-300"
                     />
                 </div>
-                <div className="mb-8">
+                <div className="mb-6">
                     <label htmlFor="phoneNumber" className="block text-gray-700 dark:text-gray-300 text-base font-semibold mb-2 transition-colors duration-300">Nomor Telepon:</label>
                     <input
                         type="tel"
@@ -287,6 +293,18 @@ function ProfilePage() {
                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-300"
                         placeholder="Masukkan nomor telepon Anda"
                     />
+                </div>
+                <div className="mb-8">
+                    <label htmlFor="bio" className="block text-gray-700 dark:text-gray-300 text-base font-semibold mb-2 transition-colors duration-300">Bio:</label>
+                    <textarea
+                        id="bio"
+                        name="bio"
+                        value={userData.bio}
+                        onChange={handleChange}
+                        rows="3"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-300"
+                        placeholder="Ceritakan sedikit tentang diri Anda..."
+                    ></textarea>
                 </div>
 
                 <div className="flex items-center justify-center">

@@ -1,6 +1,6 @@
 // src/components/Navbar.jsx
 import React, { useState, useEffect, useContext } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom"; // 'useNavigate' dihapus dari import
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, X, UserCircle, LogOut } from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
 
@@ -9,12 +9,9 @@ function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  // 'userName' dihapus dari destructuring karena tidak digunakan di sini
   const { isLoggedIn, userProfilePicture, logout } = useContext(AuthContext);
 
   const location = useLocation();
-  // 'navigate' dihapus karena tidak digunakan di sini (navigasi logout ditangani di AuthContext)
-  // const navigate = useNavigate(); // Baris ini dihapus
 
   useEffect(() => {
     // Tutup menu saat navigasi ke halaman baru
@@ -154,6 +151,15 @@ function Navbar() {
                   >
                     Profil Saya
                   </Link>
+                  {/* Tambahkan link Riwayat Transaksi di sini */}
+                  <Link
+                    to="/transactions" // Path ke halaman riwayat transaksi Anda
+                    onClick={() => setShowUserMenu(false)}
+                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    role="menuitem"
+                  >
+                    Riwayat Transaksi
+                  </Link>
                   <Link
                     to="/settings"
                     onClick={() => setShowUserMenu(false)}
@@ -243,6 +249,17 @@ function Navbar() {
                     className="block py-2 px-3 rounded-md text-base font-medium text-blue-100 hover:bg-blue-700 hover:text-white transition duration-300 ease-in-out"
                   >
                     Profil Saya
+                  </NavLink>
+                </li>
+                {/* Tambahkan link Riwayat Transaksi di sini untuk mobile */}
+                <li>
+                  <NavLink
+                    to="/transactions" // Path ke halaman riwayat transaksi Anda
+                    end
+                    onClick={toggleMobileMenu}
+                    className="block py-2 px-3 rounded-md text-base font-medium text-blue-100 hover:bg-blue-700 hover:text-white transition duration-300 ease-in-out"
+                  >
+                    Riwayat Transaksi
                   </NavLink>
                 </li>
                 <li>

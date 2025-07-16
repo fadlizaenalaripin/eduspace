@@ -12,11 +12,12 @@ const DashboardPage = () => {
   const { user, isLoggedIn, isLoadingAuth, token } = useAuth();
   const userName = user?.username || 'Pengguna';
 
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost';
   // Pastikan userProfileImage menggunakan token untuk akses yang benar jika perlu
-  const userProfileImage = user?.profilePicture
-    ? `${BACKEND_URL}${user.profilePicture}`
-    : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150"><rect width="150" height="150" fill="%234F46E5" rx="15" ry="15"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="70" fill="%23FFFFFF">U</text></svg>';
+const userProfileImage = user?.profilePicture
+  ? `${BACKEND_URL}${user.profilePicture}`
+  : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150"><rect width="150" height="150" fill="%234F46E5" rx="15" ry="15"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="70" fill="%23FFFFFF">U</text></svg>';
+
 
   const [dashboardStats, setDashboardStats] = useState({
     totalCourses: 0,

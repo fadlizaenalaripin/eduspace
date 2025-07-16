@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
+// Hapus 'Link' dari sini:
+import { useNavigate } from 'react-router-dom'; // HANYA tinggalkan useNavigate
 import { coursesData } from '../data/coursesData';
 
 const styles = `
@@ -32,6 +33,18 @@ const styles = `
 `;
 
 function CourseCard({ course }) {
+  const navigate = useNavigate();
+
+  const isFree = course.price.toLowerCase() === "gratis";
+
+  const handleEnrollClick = () => {
+    if (isFree) {
+      navigate(`/course/${course.id}`);
+    } else {
+      navigate(`/payment/${course.id}`);
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-md shadow-md overflow-hidden border border-gray-200 dark:border-gray-700 transition-colors duration-300">
       <img src={course.image} alt={course.title} className="w-full h-48 object-cover" />
@@ -40,9 +53,12 @@ function CourseCard({ course }) {
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-1 transition-colors duration-300">{course.category}</p>
         <p className="text-gray-700 dark:text-gray-300 text-sm mb-2 transition-colors duration-300">{course.description.substring(0, 60)}...</p>
         <p className="text-green-600 dark:text-green-400 font-semibold mb-2 transition-colors duration-300">{course.price}</p>
-        <Link to={`/course/${course.id}`} className="inline-block bg-blue-500 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transition-colors duration-300">
-          Belajar Sekarang
-        </Link>
+        <button
+          onClick={handleEnrollClick}
+          className="inline-block bg-blue-500 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transition-colors duration-300 w-full text-center"
+        >
+          {isFree ? "Mulai Belajar" : "Beli Kursus"}
+        </button>
       </div>
     </div>
   );
@@ -52,7 +68,6 @@ function Courses() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  // Dapatkan list kategori unik dari coursesData
   const categories = ['All', ...Array.from(new Set(coursesData.map(course => course.category)))];
 
   const handleSearchChange = (event) => {
@@ -63,7 +78,6 @@ function Courses() {
     setSelectedCategory(category);
   };
 
-  // Filter berdasarkan kategori dan search
   const filteredCourses = coursesData.filter(course => {
     const matchesCategory = selectedCategory === 'All' || course.category === selectedCategory;
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -79,7 +93,6 @@ function Courses() {
           Explore Courses
         </h2>
 
-        {/* Search Bar */}
         <div className="flex items-center rounded-full px-4 py-2 w-full max-w-md mx-auto mb-6 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 transition-colors duration-300">
           <Search className="text-gray-500 dark:text-gray-400 mr-2 transition-colors duration-300" size={20} />
           <input
@@ -91,7 +104,6 @@ function Courses() {
           />
         </div>
 
-        {/* Filter Kategori */}
         <div className="flex flex-wrap justify-center gap-3 mb-8">
           {categories.map((category) => (
             <button
@@ -111,7 +123,6 @@ function Courses() {
           ))}
         </div>
 
-        {/* Course List */}
         <div className="max-h-[75vh] overflow-y-auto pr-2 scroll-container">
           {filteredCourses.length === 0 ? (
             <p className="text-center text-gray-600 dark:text-gray-400 text-lg mt-12 transition-colors duration-300">

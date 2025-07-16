@@ -1,13 +1,14 @@
+// src/utils/progress.js
+
 import {
-  getAllUserProgress as apiGetAllProgress, // ✅ BENAR
- // ✅ perbaikan di sini
-  createProgress as apiCreateProgress,
-  updateProgress as apiUpdateProgress,
+  getAllProgress as apiGetAllProgress, // Import getAllProgress dari api.js
+  updateProgress as apiUpdateProgress, // Import updateProgress dari api.js
+  createProgress as apiCreateProgress, // <--- TAMBAHAN INI! Import createProgress dari api.js
 } from '../services/api';
 
 const USER_PROGRESS_STORAGE_KEY = 'userProgress';
 
-// Local Storage Helpers
+// Local Storage Helpers (Ini sudah baik, tidak perlu diubah)
 export const getAllProgressLocal = () => {
   try {
     const progress = localStorage.getItem(USER_PROGRESS_STORAGE_KEY);
@@ -36,19 +37,21 @@ export const clearAllProgressLocal = () => {
   }
 };
 
+// Fungsi createProgress di utils/progress.js ini akan memanggil apiCreateProgress
 const createProgress = async (courseId, lessonId, statusData, token) => {
   const progressData = {
     course_id: courseId,
     lesson_id: lessonId,
     ...statusData,
   };
+  // Panggil apiCreateProgress yang sudah diimpor
   return await apiCreateProgress(progressData, token);
 };
 
 export const getAllProgress = async (token) => {
   try {
     console.log("[progress.js] Memanggil getAllProgress dari api.js...");
-    const data = await apiGetAllProgress(token); // ✅ perbaikan
+    const data = await apiGetAllProgress(token); // ✅ Sudah benar
     return data;
   } catch (error) {
     console.error("getAllProgress: Error saat mengambil semua progres:", error);
@@ -56,6 +59,7 @@ export const getAllProgress = async (token) => {
   }
 };
 
+// Fungsi updateProgress di utils/progress.js ini akan memanggil apiUpdateProgress
 export const updateProgress = async (courseId, lessonId, newStatusData, token) => {
   try {
     const progressData = {
@@ -65,7 +69,8 @@ export const updateProgress = async (courseId, lessonId, newStatusData, token) =
       quizPassed: newStatusData.quizPassed || false,
       unlocked: newStatusData.unlocked || false,
     };
-    const response = await apiUpdateProgress(progressData, token);
+    // Panggil apiUpdateProgress yang sudah diimpor
+    const response = await apiUpdateProgress(courseId, lessonId, progressData, token); // ✅ Pastikan parameter cocok dengan definisi api.js
     console.log("updateProgress: Progres berhasil diperbarui di backend:", response);
     return response;
   } catch (error) {
@@ -105,7 +110,7 @@ export const initializeCourseProgress = async (courseId, allLessonsInCourse, tok
       ) {
         if (currentLessonProgress && (currentLessonProgress.status === "completed" || currentLessonProgress.status === "in-progress")) {
           if (unlockAllLessons && currentLessonProgress.unlocked !== true) {
-            updatesToPerform.push(updateProgress(
+            updatesToPerform.push(updateProgress( // Memanggil updateProgress dari utils/progress.js ini
               courseId,
               lesson.id,
               { ...currentLessonProgress, unlocked: true },
@@ -113,7 +118,7 @@ export const initializeCourseProgress = async (courseId, allLessonsInCourse, tok
             ));
           }
         } else {
-          updatesToPerform.push(createProgress(
+          updatesToPerform.push(createProgress( // Memanggil createProgress dari utils/progress.js ini
             courseId,
             lesson.id,
             { status: desiredStatus, unlocked: desiredUnlocked, quizPassed: false },
@@ -153,7 +158,7 @@ export const unlockNextLesson = async (courseId, allLessonsInCourse, currentLess
 
   if (nextLesson) {
     try {
-      await createProgress(
+      await createProgress( // Memanggil createProgress dari utils/progress.js ini
         courseId,
         nextLesson.id,
         { status: "unlocked", unlocked: true, quizPassed: false },
@@ -177,7 +182,7 @@ export const getLessonProgress = async (courseId, lessonId, token) => {
     return { status: 'locked', quizPassed: false, unlocked: false };
   }
   try {
-    const allProgress = await getAllProgress(token);
+    const allProgress = await getAllProgress(token); // Memanggil getAllProgress dari utils/progress.js ini
     const courseProgress = allProgress?.[courseId] || {};
     return courseProgress[lessonId] || { status: 'locked', quizPassed: false, unlocked: false };
   } catch (error) {
@@ -198,7 +203,7 @@ export const getCourseCompletionPercentage = async (courseId, allLessonsInCourse
   }
 
   try {
-    const allProgress = await getAllProgress(token);
+    const allProgress = await getAllProgress(token); // Memanggil getAllProgress dari utils/progress.js ini
     const courseProgress = allProgress?.[courseId] || {};
 
     const completedLessons = allLessonsInCourse.filter(lesson => {
@@ -218,5 +223,5 @@ export const getCourseCompletionPercentage = async (courseId, allLessonsInCourse
 
 export const markQuizPassed = async (courseId, lessonId, token) => {
   console.log("markQuizPassed: Menandai kuis sebagai lulus...");
-  return await updateProgress(courseId, lessonId, { status: "completed", quizPassed: true, unlocked: true }, token);
+  return await updateProgress(courseId, lessonId, { status: "completed", quizPassed: true, unlocked: true }, token); // Memanggil updateProgress dari utils/progress.js ini
 };
